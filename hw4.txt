@@ -1,0 +1,89 @@
+-----------------------------------------
+B551 Homework 4
+Assigned: Oct 13, 2009
+Due: 11:59pm, Oct. 27, 2009
+
+You will need the Python files contained in
+hw4.zip, from the OnCourse website.
+-----------------------------------------
+
+Directions:
+    The problems below will ask you to implement the three strategies for a 
+    game-playing agent for the game Oware.  You will need to rename the
+    players/oware/username.py file to reflect your user ID, and program your
+    strategies in that file (see README.txt for more information about the game
+    framework and Oware).  Answer written questions in a separate text
+    file called "hw4_[userID].txt".  (Example:  Mark's user ID is mw54, so
+    his written answers would be in a file titled "hw4_mw54.txt".)
+
+
+
+Submission instructions:
+    When you are done, upload your [userID].py, text file containing your
+    written answers, and any auxiliary files (additional modules or data files)
+    to the drop box under "Assignments" on OnCourse.
+    
+    
+    IMPORTANT: MAKE SURE YOUR SUBMISSION GOES THROUGH!  You may have to click
+    "Submit" more than once.  You should receive an e-mail from OnCourse
+    confirming your submission -- if you do not receive this e-mail, then your
+    submission probably has not gone through and you should re-submit or e-mail
+    one of the AIs to ask if they can see your submission!
+
+
+
+I.
+
+    1. Implement an evaluation function XXXXXXXX() in [userID].py that evaluates
+    how "favorable" a game state is to the MIN or MAX agents (> 0 indicates
+    favorable to MAX, 0 indicates neutral, and < 0 indicates favorable to MIN).
+    This function should include as features:
+        1) the difference between the number of stones captured by the player
+            and the opponent, and 
+        2) at least one other feature of your choosing.
+
+    2. Explain how you came up with this evaluation function, and why you think
+    it is a good measure of favorability.
+
+
+II.
+
+    1. Implement the minimax procedure, using your evaluation function in I, to
+        compute a move for your agent in your [userID].py.  In the algorithm,
+        let the horizon h be a tunable parameter.  (See 
+        players/tictactoe/tictactoe_adv.py for an example.)
+    
+    2. Given the default limit on the number of successor evaluations called M,
+        what is the largest horizon value h such that you are guaranteed to
+        expand a full game tree?  Why?
+    
+
+III.
+
+    1. Implement the alpha-beta pruning procedure to compute a move for your
+        agent in your [userID].py.  Again, let h be a tunable parameter.
+    
+    2. Perform some experiments to see what is the largest horizon you can set
+        without encountering the default limit on the number of successor
+        evaluations (M).  
+
+    3. Play your alpha-beta player against your minimax player.  What do you
+        observe?
+    
+    
+    
+IV.
+
+    1. Your agent will be played against all other students' agents in a
+        tournament, and the agent that receives the most wins against all other
+        agents will be declared the winner.
+
+        Your moves will be chosen according to the tournament_move() function.
+        Implement this function as you wish.  You may try any technique you
+        wish, such as singular extensions, multiple extensions, endgame
+        databases, etc.
+
+        Extra credit will be awarded for the winning agent.  We will also award
+        EC for creative implementations like learning from previous games,
+        learning from "experts", etc.
+
