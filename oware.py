@@ -124,6 +124,23 @@ class OwareState(game_state.GameState):
 	def get_keep_count(self, player):
 		return self.keeps[player-1]
 	
+	# Returns the pit on which the indicated move will end -- that is,
+	# if I move from the indicated pit, which pit will receive the last stone.
+	# Ending pit is indicated as a (player, pit) pair as in get_pit_count()
+	#
+	# player, pit arguments are as in get_pit_count()
+	def get_pit_target(self, player, pit):
+		pit = pit + (player-1)*6
+		# Count the stones in the indicated pit
+		stones = self.pits[pit]
+		# Get the number of times we'll actually circle the board
+		cycles = stones // 12
+		# Get the final pit we'll land in
+		# NB: Add # of cycles to this, since we have to skip the original pit
+		dest = (pit + stones + cycles) % 12
+		destPlayer = 1 if dest < 6 else 2
+		return (destPlayer, dest % 6)
+	
 	# Returns a state representation specific to a given player
 	#
 	# Since the game is fully observable, just returns a copy of this state.

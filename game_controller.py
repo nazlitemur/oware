@@ -33,7 +33,7 @@ class GameController:
 	#   takes a turn.  (In case some player changes the wd and doesn't restore)
 	#
 	# Raises PlayerException if there's a mismatch between players and gameIDs
-	def __init__(self, state, players, max_expansions, wd):
+	def __init__(self, state, players, fns, max_expansions, wd):
 		# Reference and ready the game state
 		self.state = state
 		self.state.clear()
@@ -56,7 +56,7 @@ class GameController:
 		self.wd = wd
 		
 		# Insert players into map
-		self.set_players(players)
+		self.set_players(players, fns)
 	
 	# only called by self.state
 	# lets the state know how many more expansions it has
@@ -94,13 +94,14 @@ class GameController:
 	#   of GamePlayer
 	#
 	# Raises PlayerException if there's a mismatch between players and gameIDs
-	def set_players(self, players):
+	def set_players(self, players, fns):
 		self.players.clear()
+		playersFns = zip(players,fns)
 		# Insert player IDs, objects into map
 		for p in self.state.get_players():
-			for v in players:
+			for v,m in playersFns:
 				if v.get_game_id() == p:
-					self.players[p] = v
+					self.players[p] = (v,m)
 					break
 			if p not in self.players:
 				raise PlayerException(p)
@@ -122,7 +123,7 @@ class GameController:
 	#
 	# fn is an integer, one of MINIMAX, ALPHA_BETA, or TOURN,
 	# indicating which of the players' move functions we should use.
-	def game_move(self, fn=MINIMAX):
+	def game_move(self):
 		# make a note of the player who isn't playing
 		for x in self.players.keys():
 			if x != self.nextPlayer:
@@ -144,12 +145,13 @@ class GameController:
 		self.expansions = self.max_expansions
 		
 		# are we using alpha-beta, minimax, or tournament?
+		fn = self.players[self.nextPlayer][1]
 		if fn == GameController.MINIMAX:
-			move_fun = self.players[self.nextPlayer].minimax_move
+			move_fun = self.players[self.nextPlayer][0].minimax_move
 		elif fn == GameController.ALPHA_BETA:
-			move_fun = self.players[self.nextPlayer].alpha_beta_move
+			move_fun = self.players[self.nextPlayer][0].alpha_beta_move
 		elif fn == GameController.TOURN:
-			move_fun = self.players[self.nextPlayer].tournament_move
+			move_fun = self.players[self.nextPlayer][0].tournament_move
 		else:
 			move_fun = None
 		move = None
@@ -165,11 +167,11 @@ class GameController:
 			# player may return illegal move
 			if not self.state.is_valid_move(move):
 				print "Illegal move returned by player", self.nextPlayer, \
-						"(", self.players[self.nextPlayer].get_name(), ")"
+						"(", self.players[self.nextPlayer][0].get_name(), ")"
 				return (move, otherPlayer)
 		except:
 			print "Exception thrown by player", self.nextPlayer, \
-						"(", self.players[self.nextPlayer].get_name(), ")"
+						"(", self.players[self.nextPlayer][0].get_name(), ")"
 			print
 			traceback.print_exc()
 			print
@@ -200,17 +202,18 @@ class GameController:
 	#
 	# alphabeta is a boolean indicating whether we use the alpha-beta
 	# pruning function of the players
-	def play_game(self, fn=MINIMAX, quiet=False):
+	def play_game(self, quiet=False):
 		# Just loop until everything's done
 		winner = None
 		while(winner == None):
 			if not quiet:
 				print self.state
-			move, winner = self.game_move(fn)
+			move, winner = self.game_move()
 			if move == None and winner == None:
 				return None
 			if move != None and not quiet:
-				print "%s:" % self.players[move.get_player()].get_name(), move
+				print "%s:" % self.players[move.get_player()][0].get_name(), \
+									move
 				print 
 		if not quiet:
 			print self.state

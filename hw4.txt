@@ -86,4 +86,3 @@ IV.
         Extra credit will be awarded for the winning agent.  We will also award
         EC for creative implementations like learning from previous games,
         learning from "experts", etc.
-
