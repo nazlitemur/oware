@@ -92,7 +92,8 @@ def class_instance(mod, name, *args):
 # player as they search during one turn.
 #
 # "alphabeta" is a boolean indicating whether alpha-beta is used or not.
-def play_game(gameName, p1Name, p2Name, maxExpansions, alphabeta):
+def play_game(gameName, p1Name, p2Name, maxExpansions, p1alphabeta, \
+		p2alphabeta):
 	wd = os.getcwd()
 	# Load game, player modules
 	gameMod = load_module(gameName.lower(), None, wd)
@@ -110,10 +111,16 @@ def play_game(gameName, p1Name, p2Name, maxExpansions, alphabeta):
 	p2 = class_instance(p2Mod, gameName+PLAYER_SUFFIX, p2Name, gameIDs[1])
 	if p1 == None or p2 == None:
 		sys.exit(2)
+		
+	fn1 = game_controller.GameController.ALPHA_BETA if p1alphabeta \
+				else game_controller.GameController.MINIMAX
+	fn2 = game_controller.GameController.ALPHA_BETA if p2alphabeta \
+				else game_controller.GameController.MINIMAX
 	
 	# Create a game controller
 	try:
-		gm = game_controller.GameController(state, [p1,p2], maxExpansions, wd)
+		gm = game_controller.GameController(state, [p1,p2], [fn1,fn2],
+											maxExpansions, wd)
 	except game_controller.PlayerException, e:
 		print "Player ID not covered!"
 		print e
@@ -125,9 +132,7 @@ def play_game(gameName, p1Name, p2Name, maxExpansions, alphabeta):
 		# Reset the game
 		gm.reset()
 		# Play the game
-		fn = game_controller.GameController.ALPHA_BETA if alphabeta \
-				else game_controller.GameController.MINIMAX
-		winner = gm.play_game(fn)
+		winner = gm.play_game()
 		if winner == None:
 			print "Game is a draw!"
 		else:
@@ -200,13 +205,18 @@ def play_tournament(gameName, exclusions, maxExpansions, quiet):
 					if players[i][0] != None and players[i][1] != None]
 	players = [x for x in players if x[0] != None and x[1] != None]
 	
+	# Need to know what function to use for each player
+	playerFns = [game_controller.GameController.TOURN] * 2
+	
 	# Player scores are all 0 to begin
 	playerScores = [0 for x in players]
 	
 	# Create a game controller
 	try:
 		gm = game_controller.GameController(state, \
-					[players[0][0],players[1][1]], maxExpansions, wd)
+					[players[0][0],players[1][1]], \
+					playerFns, \
+					maxExpansions, wd)
 	except game_controller.PlayerException, e:
 		print "Player ID not covered!"
 		print e
@@ -221,9 +231,9 @@ def play_tournament(gameName, exclusions, maxExpansions, quiet):
 			
 			# Reset the game
 			gm.reset()
-			gm.set_players([p1[0], p2[1]])
+			gm.set_players([p1[0], p2[1]], playerFns)
 			# Play the game using tournament functions
-			winner = gm.play_game(game_controller.GameController.TOURN, quiet)
+			winner = gm.play_game(quiet)
 			
 			# Output results
 			if winner == None:
@@ -262,10 +272,14 @@ def main():
 	
 	# Set up our option parser
 	parser.set_usage(USAGE_STRING)
-	parser.add_option("-m", "--minimax", action="store_true", dest="minimax",
-		help="Have players use minimax tree search (default).")
-	parser.add_option("-a", "--alpha-beta", action="store_true", dest="alphabeta",
-		help="Have players use alpha-beta tree search.")
+	parser.add_option("--m1", "--minimax1", action="store_true", dest="minimax1",
+		help="Have player 1 use minimax tree search (default).")
+	parser.add_option("--a1", "--alpha-beta1", action="store_true", dest="alphabeta1",
+		help="Have player 1 use alpha-beta tree search.")
+	parser.add_option("--m2", "--minimax2", action="store_true", dest="minimax2",
+		help="Have player 2 use minimax tree search (default).")
+	parser.add_option("--a2", "--alpha-beta2", action="store_true", dest="alphabeta2",
+		help="Have player 2 use alpha-beta tree search.")
 	parser.add_option("-t", "--tournament", action="store_true", dest="tournament",
 		help="Run a tournament with all compatible players.")
 	parser.add_option("-e", "--max-expand", type="int", dest="maxExpand",
@@ -283,14 +297,20 @@ def main():
 	opts, args = parser.parse_args()
 	
 	# Using alpha-beta?
-	alphabeta = False
+	p1alphabeta = False
+	p2alphabeta = False
 	# Why on earth doesn't optparse handle store_false and store_true to
 	#  the same option as mutually exclusive?
-	if opts.minimax and opts.alphabeta:
-		print "Error: --alpha-beta and --minimax are mutually exclusive."
+	if opts.minimax1 and opts.alphabeta1:
+		print "Error: --alpha-beta1 and --minimax1 are mutually exclusive."
 		sys.exit(1)
-	if opts.alphabeta:
-		alphabeta = True
+	if opts.minimax2 and opts.alphabeta2:
+		print "Error: --alpha-beta2 and --minimax2 are mutually exclusive."
+		sys.exit(1)
+	if opts.alphabeta1:
+		p1alphabeta = True
+	if opts.alphabeta2:
+		p2alphabeta = True
 	
 	# Playing a tournament
 	if opts.tournament:
@@ -300,7 +320,7 @@ def main():
 			sys.exit(1)
 		
 		# Minimax, alpha-beta options meaningless to tournament play
-		if opts.minimax or opts.alphabeta:
+		if opts.minimax1 or opts.alphabeta1 or opts.minimax2 or opts.alphabeta2:
 			print "Error: Minimax and alpha-beta specifications are "\
 					"compatible only with non-tournament play.  Use '-h' "\
 					"for more information."
@@ -335,7 +355,7 @@ def main():
 			"using", "alpha-beta" if alphabeta else "minimax", "planning.\n"
 		
 		# Go ahead and play
-		play_game(gameName, p1Name, p2Name, opts.maxExpand, alphabeta)
+		play_game(gameName, p1Name, p2Name, opts.maxExpand, p1alphabeta, p2alphabeta)
 
 if __name__ == "__main__":
 	main()

@@ -8,7 +8,7 @@ class OwarePlayer(game_player.GamePlayer):
 	# and player ID (will be a valid player ID for an OwareState).
 	def __init__(self, name, game_id):
 		game_player.GamePlayer.__init__(self, name, game_id)
-	
+
 	# EXAMPLE: Loads a file from the same directory this module is stored in
 	#  and returns its contents.  Pattern any file operations you do in your
 	#  player on this model.
@@ -24,19 +24,142 @@ class OwarePlayer(game_player.GamePlayer):
 		fin.close()
 		os.chdir(wd)
 		return contents
-	
+
 	# IMPLEMENT ME!
 	def evaluate(self, state):
 		pass
-	
-	# IMPLEMENT ME!
+
+	# Does most of the terminal checks for a single step in the search
+	#
+	# state is a Oware object
+	# h is steps to the ply horizon
+	# players is the list of valid player IDs
+	#
+	# Returns None if no termination, (value, move) otherwise
+	def terminal_checks(self, state, h, players):
+		# If first player wins, that's a positive
+		if state.is_win(players[0]):
+			return (sys.maxint, None)
+		# If second player wins, that's a negative
+		elif state.is_win(players[1]):
+			return (-sys.maxint - 1, None)
+
+		# If there are no more expansions allowed, or if
+		# we hit the horizon, evaluate
+		if state.expansions_count() <= 0 or h <= 0:
+			return (self.evaluate(state), None)
+
+		# if no termination, return None
+		return None
+
+	# minimax_search function. A help function for minimax_move. This one returns
+	# a (value, move) tuple that lets us back values up the tree and still return
+  # a move at the top.
+  #
+  # state is an Oware object
+	# h is an integer representing the distance to the ply horizon
+	def minimax_search(self, state, h):
+		# Get player IDs
+		players = state.get_players()
+
+		# Do most of our terminal checks
+		term = self.terminal_checks(state, h, players)
+		if term != None:
+			return term
+
+		# Get successor states
+		# We should check to see if this is None, but since we just
+		# checked to see if expansion_count was <= 0, we're safe
+		successors = state.successors()
+		# If there are no successors and nobody's won, it's a draw
+		if len(successors) == 0:
+			return (0, None)
+
+		# Recur on each of the successor states (note we take the state out
+		# of the successor tuple with x[1] and decrease the horizon)
+		values = map(lambda x: self.minimax_search(x[1], h - 1), successors)
+		# We're not interested in the moves made, just the minimax values
+		values = [x[0] for x in values]
+		# Look for the best among the returned values
+		# Max if we're player 1
+		# Min if we're player 2
+		if state.get_next_player() == players[0]:
+			max_idx = max(enumerate(values), key = lambda x: x[1])[0]
+		else:
+			max_idx = min(enumerate(values), key = lambda x: x[1])[0]
+		# Return the minimax value and corresponding move
+		return (values[max_idx], successors[max_idx][2])
+
+	# A helper function for alpha_beta_move().  See minimax_search().
+	#
+	# a,b are alpha, beta values.
+	def alpha_beta_search(self, state, h, a, b):
+		# Get player IDs
+		players = state.get_players()
+		player = state.get_next_player()
+
+		# Do most of our terminal checks
+		term = self.terminal_checks(state, h, players)
+		if term != None:
+			return term
+
+		# Get successor states
+		# We should check to see if this is None, but since we just
+		#  checked to see if expansion_count was <= 0, we're safe
+		successors = state.successors()
+		# If there are no successors and nobody's won, it's a draw
+		if len(successors) == 0:
+			return (0, None)
+
+		# We start out with a low best-value and no move
+		v = -sys.maxint - 1 if player == players[0] else sys.maxint
+		m = None
+		for s in successors:
+			# Recur on the successor state
+			s_val = self.alpha_beta_search(s[1], h - 1, a, b)
+			# If our new value is better than our best value, update the best
+			#  value and the best move
+			if (player == players[0] and s_val[0] > v) \
+					or (player == players[1] and s_val[0] < v):
+				v = s_val[0]
+				m = s[2]
+			# If we're maxing and exceeding the min above, just return
+			# Likewise if we're minning and exceeding the max above
+			if (player == players[0] and v >= b) \
+					or (player == players[1] and v <= a):
+				return (v, m)
+			# Update a,b for the next successor
+			a = a if player == players[1] else max(a, v)
+			b = b if player == players[0] else min(b, v)
+		# return the best value, move we found
+		return (v, m)
+
+	# Get a move for the indicated state, using a minimax search.
+	#
+	# state is an Oware object
 	def minimax_move(self, state):
-		pass
-	
-	# IMPLEMENT ME!
+		exp = state.expansions_count()
+		# Adjust our ply horizon to the expansion count, based on a maximum branching
+		# factor of 4.
+		h = int(math.floor(float(exp) ** (1.0 / 4.0)))
+		print h
+		return self.minimax_search(state, h)[1]
+
+	# Get a move for the indicated state, using an alpha-beta search.
+	#
+	# state is an Oware object
 	def alpha_beta_move(self, state):
-		pass
-	
-	# IMPLEMENT ME!
+		exp = state.expansions_count()
+		# Adjust our ply horizon to the expansion count, based on a maximum branching
+		# factor of 2.
+		h = int(math.floor(float(exp) ** (1.0 / 2.0)))
+		print h
+		return self.alpha_beta_search(state, h, -sys.maxint - 1, sys.maxint)[1]
+
+	# For the first player, use alpha_beta algorithm; for the second one use minimax
 	def tournament_move(self, state):
-		pass
+		players = state.get_players()
+		if state.get_next_player() == players[0]:
+			return self.alpha_beta_move(state)
+		else:
+			return self.minimax_move(state)
