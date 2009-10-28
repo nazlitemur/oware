@@ -59,8 +59,11 @@ class GameState:
 	# Having this reference allows us to check legality of certain actions with
 	# the controller (like how many times the player is allowed to ask us about
 	# successor states)
-	def setController(self, controller):
-		self.controller = weakref.proxy(controller)
+	def setController(self, controller, proxy=True):
+		if proxy:
+			self.controller = weakref.proxy(controller)
+		else:
+			self.controller = controller
 		
 	# Override in subclass
 	#
@@ -154,7 +157,7 @@ class GameState:
 	# or return None if the move is invalid
 	#
 	# move is an object whose type is a game-specific subclass of GameMove
-	def move(self, move):
+	def move(self, move, clearRepeats=False):
 		pass
 	
 	# Override in subclass ONLY if the game can cycle.
