@@ -181,7 +181,7 @@ class OwareState(game_state.GameState):
 		pit = move.get_move() + (move.get_player()-1)*6
 		otherPlayer = (move.get_player() % 2) + 1
 		lowerBound = (otherPlayer-1)*6
-		upperBound = otherPlayer*6 - 1
+		upperBound = otherPlayer*6
 		
 		# Count the stones in the indicated pit
 		stones = self.pits[pit]
@@ -193,7 +193,7 @@ class OwareState(game_state.GameState):
 		
 		# If we're landing in our own territory (i.e., outside the opponent's
 		#  bounds)
-		if dest < lowerBound or dest > upperBound:
+		if dest < lowerBound or dest >= upperBound:
 			# If we never made it to opponent's territory (i.e., distance
 			#  between starting location and our own upper bound is greater
 			#  than the number of stones we have) AND the opponent's pits are
@@ -280,7 +280,7 @@ class OwareState(game_state.GameState):
 	#  previous values with the new values resulting from the move.
 	#
 	# "move" is an OwareMove object
-	def move(self, move):
+	def move(self, move, clearRepeats=False):
 		if not self.is_valid_move(move):
 			return None
 		
@@ -309,7 +309,8 @@ class OwareState(game_state.GameState):
 				and self.controller != None:
 			# We can wipe the controller's memory of repeated states if we're
 			#  capturing
-			self.controller.clear_repeat()
+			if clearRepeats:
+				self.controller.clear_repeat()
 			
 		while (pitIter < lowerBound or pitIter > upperBound) \
 				and (self.pits[pitIter] == 2 or self.pits[pitIter] == 3):

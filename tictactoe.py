@@ -147,7 +147,7 @@ class TicTacToeState(game_state.GameState):
 	# if the move was invalid.
 	#
 	# "move" is a TicTacToeMove object
-	def move(self, move):
+	def move(self, move, clearRepeats=False):
 		if not self.is_valid_move(move):
 			return None
 		self.board[move.get_move()] = move.get_player()

@@ -155,6 +155,7 @@ class GameController:
 		else:
 			move_fun = None
 		move = None
+		lastPlayer = None
 		
 		# player may throw an exception
 		try:
@@ -169,6 +170,10 @@ class GameController:
 				print "Illegal move returned by player", self.nextPlayer, \
 						"(", self.players[self.nextPlayer][0].get_name(), ")"
 				return (move, otherPlayer)
+			# this player is now last player
+			lastPlayer = self.nextPlayer
+			# get the new next player and make the indicated move
+			self.nextPlayer = self.state.move(move, True)
 		except:
 			print "Exception thrown by player", self.nextPlayer, \
 						"(", self.players[self.nextPlayer][0].get_name(), ")"
@@ -178,11 +183,6 @@ class GameController:
 			return (None, otherPlayer)
 		
 		os.chdir(self.wd)
-		
-		# this player is now last player
-		lastPlayer = self.nextPlayer
-		# get the new next player and make the indicated move
-		self.nextPlayer = self.state.move(move)
 		
 		# may be a repeated state IF the game cycles
 		if self.is_repeat(self.state):
@@ -199,9 +199,6 @@ class GameController:
 		return (move, None)
 	
 	# returns a winner, or None if a draw
-	#
-	# alphabeta is a boolean indicating whether we use the alpha-beta
-	# pruning function of the players
 	def play_game(self, quiet=False):
 		# Just loop until everything's done
 		winner = None

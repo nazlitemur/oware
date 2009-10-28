@@ -30,29 +30,33 @@ class OwarePlayer(game_player.GamePlayer):
 		os.chdir(wd)
 		return contents
 
-	# Evaluation strategy for expansion horizon smaller than 5
-	def shallow_evaluate(self, features):
-		# Weights for each feature under the shallow evaluation strategy
-		weights = (0.06, 0.20, 0.93, 0.93, 0.13, 0.87, 0.06, 0.93, 0.13, 0.60, 1.00, 0.67)
-		#features = (o_cap_two, o_cap_three, p_cap_two, p_cap_three, o_reach_p,
-		#					   p_reach_o, o_12, p_12, o_keep, p_keep, o_empty, p_empty)
-		value = 0
-		for i in range(12):
-			value += (float)(weights[i]) * features[i]
+# =========================This block is the initial codes==========================
 
-		return value
+#	# Evaluation strategy for expansion horizon smaller than 5
+#	def shallow_evaluate(self, features):
+#		# Weights for each feature under the shallow evaluation strategy
+#		weights = (0.06, 0.20, 0.93, 0.93, 0.13, 0.87, 0.06, 0.93, 0.13, 0.60, 1.00, 0.67)
+#		#features = (o_cap_two, o_cap_three, p_cap_two, p_cap_three, o_reach_p,
+#		#					   p_reach_o, o_12, p_12, o_keep, p_keep, o_empty, p_empty)
+#		value = 0
+#		for i in range(12):
+#			value += (float)(weights[i]) * features[i]
+#
+#		return value
+#
+#	# Evaluation strategy for expansion horizon no less than 5
+#	def deep_evaluate(self, features):
+#		# Weights for each feature under the deep evaluation strategy
+#		weights = (0.80, 1.00, 0.06, 0.00, 0.87, 0.60, 0.00, 0.20, 0.73, 0.93, 0.00, 0.80)
+#		#features = (o_cap_two, o_cap_three, p_cap_two, p_cap_three, o_reach_p,
+#		#					   p_reach_o, o_12, p_12, o_keep, p_keep, o_empty, p_empty)
+#		value = 0
+#		for i in range(12):
+#			value += (float)(weights[i]) * features[i]
+#
+#		return value
 
-	# Evaluation strategy for expansion horizon no less than 5
-	def deep_evaluate(self, features):
-		# Weights for each feature under the deep evaluation strategy
-		weights = (0.80, 1.00, 0.06, 0.00, 0.87, 0.60, 0.00, 0.20, 0.73, 0.93, 0.00, 0.80)
-		#features = (o_cap_two, o_cap_three, p_cap_two, p_cap_three, o_reach_p,
-		#					   p_reach_o, o_12, p_12, o_keep, p_keep, o_empty, p_empty)
-		value = 0
-		for i in range(12):
-			value += (float)(weights[i]) * features[i]
-
-		return value
+# =========================This block is the initial codes==========================
 
 	# An evaluation function for Oware
 	#
@@ -145,11 +149,18 @@ class OwarePlayer(game_player.GamePlayer):
 		features = (o_cap_two, o_cap_three, p_cap_two, p_cap_three, o_reach_p, \
 							  p_reach_o, o_12, p_12, o_keep, p_keep, o_empty, p_empty)
 
-		# Use different strategies for expansion horizons above and below 5
-		if self.horizon <= 4:
-			return self.shallow_evaluate(features)
-		else:
-			return self.deep_evaluate(features)
+		weights = (-1.50, -2.50, 1.50, 2.50, 0.00, 0.00, 0.00, 0.00, -1.00, 1.00, 0.00, 0.00)
+
+		value = 0
+		for i in range(12):
+			value += (float)(weights[i]) * features[i]
+
+		return value
+#		# Use different strategies for expansion horizons above and below 5
+#		if self.horizon <= 4:
+#			return self.shallow_evaluate(features)
+#		else:
+#			return self.deep_evaluate(features)
 
 	# Does most of the terminal checks for a single step in the search
 	#
@@ -273,7 +284,8 @@ class OwarePlayer(game_player.GamePlayer):
 		# Else, set horizon as the number of nodes for expansion divided by
 		# the branching factor
 		else:
-		  return int(math.floor(float(exp) / branching_factor))
+		  # return int(math.floor(float(exp) / branching_factor))
+		  return int(math.floor(float(exp) / 3.5))
 
 	# Get a move for the indicated state, using a minimax search
 	#
