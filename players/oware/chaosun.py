@@ -33,7 +33,7 @@ class OwarePlayer(game_player.GamePlayer):
   # for a feature may be different for different horizon. Reference:
   # http://users.encs.concordia.ca/~kharma/ResearchWeb/html/research/ayo.html
   #
-  # state is a TicTacToeState object
+  # state is a Oware object
   # horizon is the expansion horizon
   def evaluate(self, state):
     # north for north player, south for south player
@@ -240,22 +240,18 @@ class OwarePlayer(game_player.GamePlayer):
   # of nodes for expansion
   #
   # state is an Oware object
-  def get_horizon(self, state):
+  def get_horizon(self, state, strategy):
     # Get the number of nodes for expansion
     exp = state.expansions_count()
-    # Get successor states
-    successors = state.successors()
-    # Get the number of successors, or the branching factor
-    branching_factor = len(successors)
-    # If there are no successors, set horizon as 0
-    if branching_factor == 0:
-      return 0
-    # Else, set horizon as the number of nodes for expansion divided by
-    # the branching factor
-    else:
-      # return int(math.floor(float(exp) / branching_factor))
+    # return int(math.floor(float(exp) / branching_factor))
+    if strategy == 1:
       if exp > 3.5:
-        return int(math.floor(math.log(float(exp), 3.5)))
+        return int(math.ceil(math.log(float(exp), 3.5)))
+      else:
+        return 1
+    else:
+      if exp >= 6:
+        return int(math.ceil(math.log(float(exp), 6.0)))
       else:
         return 1
 
@@ -263,7 +259,7 @@ class OwarePlayer(game_player.GamePlayer):
   #
   # state is an Oware object
   def minimax_move(self, state):
-    horizon = self.get_horizon(state)
+    horizon = self.get_horizon(state, 0)
     print "Expansion horizon: ", horizon
     return self.minimax_search(state, horizon)[1]
 
@@ -271,7 +267,7 @@ class OwarePlayer(game_player.GamePlayer):
   #
   # state is an Oware object
   def alpha_beta_move(self, state):
-    horizon = self.get_horizon(state)
+    horizon = self.get_horizon(state, 1)
     print "Expansion horizon: ", horizon
     return self.alpha_beta_search(state, horizon, -sys.maxint - 1, sys.maxint)[1]
 
